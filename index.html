@@ -630,7 +630,7 @@ function render(){
       const open = sortItems(S.items.filter(i=>i.list===lid(l) && !i.done));
       return `<button class="pin" data-act="openBoard" data-board="${lid(l)}" style="--tint:var(--t-${l.tint})">
         <h3>${esc(l.name)}</h3><div class="n">${open.length} OPEN</div>
-        ${open.length ? `<ul>${open.slice(0,5).map(i=>`<li><span>${esc(i.text)}</span></li>`).join("")}${open.length>5?`<li><span>+${open.length-5} more</span></li>`:""}</ul>` : ""}
+        ${open.length ? `<ul>${open.slice(0,5).map(i=>`<li><span>${esc(i.text)}</span></li>`).join("")}</ul>` : ""}
       </button>`;
     }).join("");
     app.innerHTML = `
