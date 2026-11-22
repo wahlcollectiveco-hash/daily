@@ -21,7 +21,7 @@
 :root{
   --bg:#f2f5f4; --surface:#ffffff; --ink:#1d2a2b; --muted:#6f7f80; --line:#e0e8e6;
   --accent:#1f5f63; --accent-ink:#ffffff; --accent-soft:#deecec; --danger:#b3443a; --burst-2:#e0876a; --burst-3:#d4a336;
-  --t-rose:#f4dfe3; --t-sage:#e0e9dc; --t-sky:#dce7f0; --t-butter:#f5ebcf; --t-lilac:#e7dff1; --t-clay:#efe0d5;
+  --t-rose:#f4dfe3; --t-sage:#e0e9dc; --t-sky:#dce7f0; --t-butter:#f5ebcf; --t-lilac:#e7dff1; --t-clay:#efe0d5; --t-coral:#f6dad3; --t-peach:#f8e3d1; --t-sand:#ece5d8; --t-moss:#e4e9d0; --t-mint:#d8eee4; --t-aqua:#d5ecee; --t-periwinkle:#dfe1f5; --t-plum:#ecdce8; --t-blush:#f7dde9; --t-fog:#e4e7eb;
   --shadow:0 1px 2px rgba(20,50,52,.05),0 6px 20px rgba(20,50,52,.07);
   --f-display:"Instrument Serif",ui-serif,Georgia,serif;
   --f-body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -29,12 +29,12 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#111716; --surface:#1a2221; --ink:#e9f0ef; --muted:#93a3a2; --line:#2a3634;
   --accent:#7cc3c2; --accent-ink:#0d2223; --accent-soft:#1d3536; --danger:#e3796e; --burst-2:#f0a68b; --burst-3:#e8c46c;
-  --t-rose:#3b2a2e; --t-sage:#29332a; --t-sky:#27313b; --t-butter:#39331f; --t-lilac:#312a3a; --t-clay:#3a2e28;
+  --t-rose:#3b2a2e; --t-sage:#29332a; --t-sky:#27313b; --t-butter:#39331f; --t-lilac:#312a3a; --t-clay:#3a2e28; --t-coral:#3f2b27; --t-peach:#3d3125; --t-sand:#36322a; --t-moss:#2f3425; --t-mint:#23362f; --t-aqua:#22363a; --t-periwinkle:#2b2e42; --t-plum:#372a35; --t-blush:#3d2b35; --t-fog:#2c3137;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#111716; --surface:#1a2221; --ink:#e9f0ef; --muted:#93a3a2; --line:#2a3634;
   --accent:#7cc3c2; --accent-ink:#0d2223; --accent-soft:#1d3536; --danger:#e3796e; --burst-2:#f0a68b; --burst-3:#e8c46c;
-  --t-rose:#3b2a2e; --t-sage:#29332a; --t-sky:#27313b; --t-butter:#39331f; --t-lilac:#312a3a; --t-clay:#3a2e28;
+  --t-rose:#3b2a2e; --t-sage:#29332a; --t-sky:#27313b; --t-butter:#39331f; --t-lilac:#312a3a; --t-clay:#3a2e28; --t-coral:#3f2b27; --t-peach:#3d3125; --t-sand:#36322a; --t-moss:#2f3425; --t-mint:#23362f; --t-aqua:#22363a; --t-periwinkle:#2b2e42; --t-plum:#372a35; --t-blush:#3d2b35; --t-fog:#2c3137;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}
 
 *{box-sizing:border-box}
@@ -156,8 +156,8 @@ body.drag-lock{user-select:none;-webkit-user-select:none;overscroll-behavior:non
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
 .field input,.field select{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:12px;width:100%}
-.swatches{display:flex;gap:10px;flex-wrap:wrap}
-.sw{width:36px;height:36px;border-radius:50%;background:var(--tint);box-shadow:inset 0 0 0 1px var(--line)}
+.swatches{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px}
+.sw{width:100%;max-width:38px;aspect-ratio:1;justify-self:center;border-radius:50%;background:var(--tint);box-shadow:inset 0 0 0 1px var(--line)}
 .sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 .btn{flex:1;padding:13px 16px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:600;min-width:120px}
@@ -262,7 +262,7 @@ body.drag-lock{user-select:none;-webkit-user-select:none;overscroll-behavior:non
 
 <script>
 (() => {
-const TINTS = ["rose","sage","sky","butter","lilac","clay"];
+const TINTS = ["rose","coral","peach","clay","butter","sand","moss","sage","mint","aqua","sky","periwinkle","lilac","plum","blush","fog"];
 const DEFAULT_LISTS = [
   {id:"todo",  name:"To-Do",       tint:"rose",   hint:"Everyday personal tasks, errands, returns, appointments and reminders. The default.", order:0},
   {id:"work",  name:"Work",        tint:"sky",    hint:"Work tasks and to-dos for the person's job.", order:1},

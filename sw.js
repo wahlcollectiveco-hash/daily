@@ -1,6 +1,6 @@
 // Daily offline support: the app opens without internet, and picks up new versions in the background.
 // When you publish a new version, bump VERSION so old files get cleared.
-const VERSION = "daily-v3";
+const VERSION = "daily-v4";
 const CORE = ["./", "index.html", "manifest.webmanifest", "apple-touch-icon.png", "icon-192.png", "icon-512.png", "favicon.png"];
 
 self.addEventListener("install", e => {
