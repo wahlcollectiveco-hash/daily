@@ -20,7 +20,7 @@
 /* Layout: one-column phone app. Header + list in a centered 560px column; capture bar and tab bar pinned to the bottom. Boards view is a two-column pin grid. */
 :root{
   --bg:#f2f5f4; --surface:#ffffff; --ink:#1d2a2b; --muted:#6f7f80; --line:#e0e8e6;
-  --accent:#1f5f63; --accent-ink:#ffffff; --accent-soft:#deecec; --danger:#b3443a;
+  --accent:#1f5f63; --accent-ink:#ffffff; --accent-soft:#deecec; --danger:#b3443a; --burst-2:#e0876a; --burst-3:#d4a336;
   --t-rose:#f4dfe3; --t-sage:#e0e9dc; --t-sky:#dce7f0; --t-butter:#f5ebcf; --t-lilac:#e7dff1; --t-clay:#efe0d5;
   --shadow:0 1px 2px rgba(20,50,52,.05),0 6px 20px rgba(20,50,52,.07);
   --f-display:"Instrument Serif",ui-serif,Georgia,serif;
@@ -28,12 +28,12 @@
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#111716; --surface:#1a2221; --ink:#e9f0ef; --muted:#93a3a2; --line:#2a3634;
-  --accent:#7cc3c2; --accent-ink:#0d2223; --accent-soft:#1d3536; --danger:#e3796e;
+  --accent:#7cc3c2; --accent-ink:#0d2223; --accent-soft:#1d3536; --danger:#e3796e; --burst-2:#f0a68b; --burst-3:#e8c46c;
   --t-rose:#3b2a2e; --t-sage:#29332a; --t-sky:#27313b; --t-butter:#39331f; --t-lilac:#312a3a; --t-clay:#3a2e28;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#111716; --surface:#1a2221; --ink:#e9f0ef; --muted:#93a3a2; --line:#2a3634;
-  --accent:#7cc3c2; --accent-ink:#0d2223; --accent-soft:#1d3536; --danger:#e3796e;
+  --accent:#7cc3c2; --accent-ink:#0d2223; --accent-soft:#1d3536; --danger:#e3796e; --burst-2:#f0a68b; --burst-3:#e8c46c;
   --t-rose:#3b2a2e; --t-sage:#29332a; --t-sky:#27313b; --t-butter:#39331f; --t-lilac:#312a3a; --t-clay:#3a2e28;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}
 
@@ -117,7 +117,16 @@ body.drag-lock{user-select:none;-webkit-user-select:none;overscroll-behavior:non
 .capture input{flex:1;min-width:0;border:0;background:transparent;padding:10px 4px 10px 12px;outline:none}
 .capture input::placeholder{color:var(--muted)}
 .mic,.send{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none}
-.mic{background:var(--accent);color:var(--accent-ink);position:relative}
+.mic{background:var(--accent);color:var(--accent-ink);position:relative;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;touch-action:none;transition:transform .15s}
+.mic.on{transform:scale(1.12)}
+
+/* done burst */
+.burst{position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:60}
+.burst i{position:absolute;left:-2px;top:-5px;width:4px;height:10px;border-radius:3px;background:var(--c)}
+.burst b{position:absolute;left:-15px;top:-15px;width:30px;height:30px;border-radius:50%;border:2px solid var(--accent)}
+.check.pop{animation:pop .36s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(.8)}50%{transform:scale(1.22)}100%{transform:scale(1)}}
+.item.leaving .body,.item.leaving .star,.item.leaving .handle{opacity:0;filter:blur(3px);transform:translateX(6px);transition:opacity .38s ease,filter .38s ease,transform .38s ease}
 .mic.on::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--accent);animation:pulse 1.4s ease-out infinite}
 @keyframes pulse{0%{transform:scale(.9);opacity:1}100%{transform:scale(1.25);opacity:0}}
 .send{color:var(--accent)}
@@ -229,7 +238,7 @@ body.drag-lock{user-select:none;-webkit-user-select:none;overscroll-behavior:non
   <div class="dock-in">
     <form class="capture" id="capture" autocomplete="off">
       <input id="cap-input" type="text" placeholder="Add a to-do or brain dump…" aria-label="Add a to-do or brain dump, Daily will sort it">
-      <button type="submit" class="mic" id="cap-send" aria-label="Add it">
+      <button type="button" class="mic" id="cap-send" aria-label="Add it, or press and hold to talk">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       </button>
     </form>
@@ -336,6 +345,45 @@ function toggle(id){
   const it = S.items.find(i=>i.id===id); if(!it) return;
   store.update(id, {done:!it.done, doneAt: it.done ? null : Date.now()});
 }
+/* marking done: the circle pops, a little burst of dashes flies out, the row dissolves and folds away */
+function burstAt(el){
+  const r = el.getBoundingClientRect();
+  const wrap = document.createElement("div");
+  wrap.className = "burst";
+  wrap.style.transform = `translate(${r.left + r.width/2}px, ${r.top + r.height/2}px)`;
+  const ring = document.createElement("b");
+  wrap.appendChild(ring);
+  ring.animate([{transform:"scale(.5)", opacity:.8}, {transform:"scale(1.7)", opacity:0}], {duration:460, easing:"cubic-bezier(.2,.7,.3,1)", fill:"forwards"});
+  const colors = ["var(--accent)", "var(--burst-2)", "var(--burst-3)"];
+  const n = 10;
+  for(let k = 0; k < n; k++){
+    const p = document.createElement("i");
+    p.style.setProperty("--c", colors[k % colors.length]);
+    wrap.appendChild(p);
+    const deg = k * (360/n) + (Math.random() - .5) * 16, d = 24 + Math.random() * 10;
+    p.animate([
+      {transform:`rotate(${deg}deg) translateY(-8px) scaleY(.5)`, opacity:1},
+      {transform:`rotate(${deg}deg) translateY(${-d}px) scaleY(1)`, opacity:1, offset:.5},
+      {transform:`rotate(${deg}deg) translateY(${-d - 8}px) scaleY(.2)`, opacity:0}
+    ], {duration:580, easing:"cubic-bezier(.2,.7,.3,1)", fill:"forwards"});
+  }
+  document.body.appendChild(wrap);
+  setTimeout(() => wrap.remove(), 700);
+}
+function completeWithBurst(btn, id){
+  const it = S.items.find(i=>i.id===id), row = btn.closest(".item");
+  if(!it || !row || it.done || matchMedia("(prefers-reduced-motion: reduce)").matches){ toggle(id); return }
+  if(row.classList.contains("leaving")) return;
+  if(btn.classList.contains("starred")){ btn.classList.remove("starred"); btn.innerHTML = CHECK }
+  row.classList.add("done", "leaving");
+  btn.classList.add("pop");
+  burstAt(btn);
+  setTimeout(() => {
+    row.style.overflow = "hidden";
+    const fold = row.animate([{height:row.offsetHeight + "px", opacity:1}, {height:"0px", paddingTop:"0px", paddingBottom:"0px", opacity:0}], {duration:240, easing:"ease-in", fill:"forwards"});
+    fold.onfinish = () => toggle(id);
+  }, 420);
+}
 function createList(name, tint){
   const key = name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,30) || "board";
   let id = key, n = 2; while(listById(id)) id = key + "-" + n++;
@@ -434,9 +482,68 @@ async function capture(note){
 }
 
 /* ---------- capture bar ----------
-   To talk instead of typing, tap the mic on the phone's keyboard. */
-const capInput = $("#cap-input");
+   Tap + to add what's typed. Press and hold + to talk: it listens while you hold and adds what you said when you let go. */
+const capInput = $("#cap-input"), sendBtn = $("#cap-send");
+const PLUS_SVG = sendBtn.innerHTML;
+const MIC_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+const PLACEHOLDER = capInput.placeholder;
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let holdT = null, held = false, rec = null, heard = "", released = false, voiceErr = false;
+
 $("#capture").addEventListener("submit", e => { e.preventDefault(); capture(capInput.value) });
+sendBtn.addEventListener("click", e => {
+  e.preventDefault();
+  if(held){ held = false; return }          // that press was a hold-to-talk, not a tap
+  capture(capInput.value);
+});
+sendBtn.addEventListener("contextmenu", e => e.preventDefault());
+sendBtn.addEventListener("pointerdown", e => {
+  if(e.button) return;
+  held = false; clearTimeout(holdT);
+  holdT = setTimeout(() => { held = true; startVoice() }, 350);
+});
+const releaseHold = () => { clearTimeout(holdT); if(held) stopVoice() };
+sendBtn.addEventListener("pointerup", releaseHold);
+sendBtn.addEventListener("pointercancel", releaseHold);
+
+function setListening(on){
+  sendBtn.classList.toggle("on", on);
+  sendBtn.innerHTML = on ? MIC_SVG : PLUS_SVG;
+  capInput.placeholder = on ? "Listening… let go when you're done" : PLACEHOLDER;
+}
+function startVoice(){
+  if(!SR){ toast("Voice isn't available here. Tap the mic on your keyboard instead."); return }
+  const base = capInput.value.trim();
+  heard = ""; released = false; voiceErr = false;
+  try{ navigator.vibrate?.(12) }catch(_){}
+  rec = new SR();
+  rec.lang = navigator.language || "en-US";
+  rec.interimResults = true;
+  rec.continuous = true;
+  rec.onresult = e => {
+    let t = "";
+    for(let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+    heard = t.trim();
+    capInput.value = (base + " " + heard).trim();
+  };
+  rec.onerror = e => {
+    voiceErr = true;
+    if(e.error === "not-allowed" || e.error === "service-not-allowed") toast("Daily can't use the microphone. Allow it when your phone asks, or tap the mic on your keyboard.");
+    else if(e.error === "no-speech") toast("Didn't catch that. Hold + and talk, then let go.");
+    else if(e.error !== "aborted") toast("Voice stopped. Try again, or type instead.");
+  };
+  rec.onend = () => {
+    setListening(false); rec = null;
+    if(heard && capInput.value.trim()) capture(capInput.value);
+    else if(released && !voiceErr) toast("Didn't catch that. Hold + and talk, then let go.");
+  };
+  try{ rec.start(); setListening(true) }
+  catch(_){ rec = null; toast("Couldn't start the mic. Try again, or type instead.") }
+}
+function stopVoice(){
+  released = true;
+  if(rec){ try{ rec.stop() }catch(_){} }
+}
 
 /* ---------- toast ---------- */
 let toastT;
@@ -598,7 +705,7 @@ function openPodSheet(){
 app.addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if(!b) return;
   const id = b.closest(".item")?.dataset.id, act = b.dataset.act;
-  if(act === "toggle") toggle(id);
+  if(act === "toggle") completeWithBurst(b, id);
   else if(act === "star"){ const it = S.items.find(i=>i.id===id); if(it) store.update(id, {star:!it.star}) }
   else if(act === "pod") openPodSheet();
   else if(act === "backup") openBackupSheet();
