@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Daily">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#f2f5f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111716" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
+<style>
+/* Layout: one-column phone app. Header + list in a centered 560px column; capture bar and tab bar pinned to the bottom. Boards view is a two-column pin grid. */
+:root{
+  --bg:#f2f5f4; --surface:#ffffff; --ink:#1d2a2b; --muted:#6f7f80; --line:#e0e8e6;
+  --accent:#1f5f63; --accent-ink:#ffffff; --accent-soft:#deecec; --danger:#b3443a;
+  --t-rose:#f4dfe3; --t-sage:#e0e9dc; --t-sky:#dce7f0; --t-butter:#f5ebcf; --t-lilac:#e7dff1; --t-clay:#efe0d5;
+  --shadow:0 1px 2px rgba(20,50,52,.05),0 6px 20px rgba(20,50,52,.07);
+  --f-display:"Instrument Serif",ui-serif,Georgia,serif;
+  --f-body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111716; --surface:#1a2221; --ink:#e9f0ef; --muted:#93a3a2; --line:#2a3634;
+  --accent:#7cc3c2; --accent-ink:#0d2223; --accent-soft:#1d3536; --danger:#e3796e;
+  --t-rose:#3b2a2e; --t-sage:#29332a; --t-sky:#27313b; --t-butter:#39331f; --t-lilac:#312a3a; --t-clay:#3a2e28;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111716; --surface:#1a2221; --ink:#e9f0ef; --muted:#93a3a2; --line:#2a3634;
+  --accent:#7cc3c2; --accent-ink:#0d2223; --accent-soft:#1d3536; --danger:#e3796e;
+  --t-rose:#3b2a2e; --t-sage:#29332a; --t-sky:#27313b; --t-butter:#39331f; --t-lilac:#312a3a; --t-clay:#3a2e28;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{min-height:100%}
+html{background:var(--bg)}
+body{margin:0;padding-top:env(safe-area-inset-top,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:25;background:var(--bg)}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.45 var(--f-body);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+
+.wrap{max-width:560px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));padding-block:20px 200px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500}
+h1{font:400 44px/1.05 var(--f-display);margin:6px 0 4px;letter-spacing:-.01em;text-wrap:balance}
+h1 em{font-style:italic;color:var(--accent)}
+.sub{color:var(--muted);font-size:14px}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px}
+.head-l{min-width:0}
+.icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--muted);flex:none}
+.icon-btn:hover{background:var(--accent-soft);color:var(--accent)}
+.back{display:inline-flex;align-items:center;gap:4px;color:var(--muted);font-size:14px;margin-bottom:6px;padding:6px 0}
+
+/* add row */
+.addrow{display:flex;gap:10px;align-items:center;background:var(--surface);border-radius:16px;padding:6px 6px 6px 16px;box-shadow:var(--shadow);margin-bottom:14px}
+.addrow input{flex:1;min-width:0;border:0;background:transparent;padding:10px 0;outline:none}
+.addrow input::placeholder{color:var(--muted)}
+.addrow button{width:38px;height:38px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+
+/* items */
+.list{display:flex;flex-direction:column;background:var(--surface);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+.item{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-top:1px solid var(--line);transition:opacity .3s}
+.item:first-child{border-top:0}
+.check{width:24px;height:24px;flex:none;border-radius:50%;border:1.5px solid var(--muted);display:grid;place-items:center;margin-top:1px;transition:background .2s,border-color .2s}
+.check svg{opacity:0;transition:opacity .2s}
+.item.done .check{background:var(--accent);border-color:var(--accent)}
+.check.starred{border:0;color:var(--accent);border-radius:0}
+.check.starred svg{opacity:1;width:24px;height:24px}
+.handle{width:28px;height:32px;flex:none;display:grid;place-items:center;color:var(--muted);opacity:.45;margin:-4px -8px -4px -2px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.handle:hover{opacity:.9}
+.item.dragging{position:relative;z-index:5;background:var(--surface);box-shadow:0 10px 28px rgba(10,40,40,.18);border-radius:14px;transform:scale(1.02);opacity:.98}
+.list.is-sorting .item{transition:none}
+body.drag-lock{user-select:none;-webkit-user-select:none;overscroll-behavior:none}
+.item.done .check svg{opacity:1}
+.item.done .txt{text-decoration:line-through;color:var(--muted)}
+.body{flex:1;min-width:0;text-align:left;display:flex;flex-direction:column;gap:5px}
+.txt{overflow-wrap:anywhere}
+.meta{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:500}
+.chip.late{background:transparent;color:var(--danger);box-shadow:inset 0 0 0 1px var(--danger)}
+.chip.board{background:var(--tint,var(--line));color:var(--ink);font-weight:400}
+.item.fresh{animation:fresh 1.2s ease}
+@keyframes fresh{0%{background:var(--accent-soft)}100%{background:transparent}}
+
+.empty{padding:28px 20px;text-align:center;color:var(--muted);font-size:15px}
+.empty b{display:block;font:400 24px/1.2 var(--f-display);color:var(--ink);margin-bottom:4px;font-weight:400}
+
+.section-h{display:flex;align-items:center;justify-content:space-between;margin:26px 4px 10px}
+.section-h h2{font:400 22px/1 var(--f-display);margin:0}
+.link{color:var(--muted);font-size:13px;padding:6px}
+.link:hover{color:var(--accent)}
+
+/* boards grid */
+.pins{columns:2;column-gap:12px}
+.pin{break-inside:avoid;display:block;width:100%;text-align:left;margin-bottom:12px;border-radius:20px;padding:16px;background:var(--tint);transition:transform .15s}
+.pin:active{transform:scale(.98)}
+.pin h3{font:400 24px/1.1 var(--f-display);margin:0 0 2px;overflow-wrap:anywhere}
+.pin .n{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.pin ul{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:14px}
+.pin li{display:flex;gap:8px;align-items:flex-start}
+.pin li::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.35;margin-top:7px;flex:none}
+.pin li span{overflow-wrap:anywhere}
+.pin.new{background:transparent;border:1.5px dashed var(--line);color:var(--muted);display:flex;align-items:center;justify-content:center;min-height:120px;font-size:15px}
+
+/* bottom dock */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:20;background:linear-gradient(to top,var(--bg) 70%,transparent);padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-top:24px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+.dock-in{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.capture{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:999px;padding:6px;box-shadow:var(--shadow),0 0 0 1px var(--line)}
+.capture input{flex:1;min-width:0;border:0;background:transparent;padding:10px 4px 10px 12px;outline:none}
+.capture input::placeholder{color:var(--muted)}
+.mic,.send{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none}
+.mic{background:var(--accent);color:var(--accent-ink);position:relative}
+.mic.on::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--accent);animation:pulse 1.4s ease-out infinite}
+@keyframes pulse{0%{transform:scale(.9);opacity:1}100%{transform:scale(1.25);opacity:0}}
+.send{color:var(--accent)}
+.send[hidden]{display:none}
+.tabs{display:flex;justify-content:center;gap:6px}
+.tab{flex:1;max-width:160px;padding:8px 0;border-radius:12px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:500}
+.tab[aria-current="page"]{color:var(--ink)}
+.tab[aria-current="page"] svg{color:var(--accent)}
+
+/* toast */
+.toast{position:fixed;left:50%;transform:translate(-50%,10px);bottom:calc(150px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);border-radius:16px;padding:12px 14px 12px 16px;display:flex;gap:12px;align-items:center;font-size:14px;width:min(520px,calc(100% - 32px));opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast .msg{flex:1;min-width:0;overflow-wrap:anywhere}
+.toast .msg small{display:block;opacity:.7;font-size:12px}
+.toast button{font-weight:600;color:var(--bg);padding:6px 8px;border-radius:8px;flex:none}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .7s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(8,20,20,.4);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;transform:translateY(105%);transition:transform .25s ease}
+.sheet.show{transform:none}
+.sheet-in{max-width:560px;margin:0 auto;background:var(--surface);border-radius:24px 24px 0 0;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-top:10px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.grab{width:40px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 4px}
+.sheet h2{font:400 26px/1.1 var(--f-display);margin:0}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.field input,.field select{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:12px;width:100%}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.sw{width:36px;height:36px;border-radius:50%;background:var(--tint);box-shadow:inset 0 0 0 1px var(--line)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{flex:1;padding:13px 16px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:600;min-width:120px}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.btn.danger{background:transparent;color:var(--danger);box-shadow:inset 0 0 0 1px var(--danger)}
+.btn.danger.armed{background:var(--danger);color:var(--surface)}
+.note{font-size:12px;color:var(--muted);text-align:center}
+
+/* star + top 3 */
+.star{width:32px;height:32px;flex:none;display:grid;place-items:center;color:var(--muted);opacity:.35;margin:-4px -6px -4px 0;border-radius:50%}
+.star:hover{color:var(--muted)}
+.star.on{color:var(--accent)}
+.top3{display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
+.slot{display:flex;align-items:flex-start;gap:12px;background:var(--surface);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow);border-left:0}
+.slot .num{font:400 30px/0.9 var(--f-display);color:var(--accent);width:22px;flex:none;font-variant-numeric:tabular-nums}
+.slot.empty-slot{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--muted);font-size:14px;align-items:center}
+.slot.empty-slot .num{color:var(--line)}
+.slot .item{padding:0;border:0;flex:1;min-width:0}
+.why{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.switch{width:46px;height:28px;border-radius:999px;background:var(--line);position:relative;flex:none;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--surface);transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch[aria-checked="true"]{background:var(--accent)}
+.switch[aria-checked="true"]::after{transform:translateX(18px)}
+
+/* date + week squares */
+.dateline{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px}
+.wk{display:inline-flex;gap:4px}
+.sq{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:10.5px;font-weight:600;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.sq.on{background:var(--accent);color:var(--accent-ink);box-shadow:none}
+.clear-mark{display:grid;place-items:center;padding-block:36px 24px;color:var(--muted);opacity:.35}
+
+/* dashboard */
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:8px}
+.tile{background:var(--surface);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:4px;min-width:0;text-align:left}
+.tile .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.tile .v{font:400 34px/1 var(--f-display);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tile .d{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.tile.tap{cursor:pointer}
+.tile.tap:hover{box-shadow:var(--shadow),0 0 0 1.5px var(--accent-soft)}
+.card{background:var(--surface);border-radius:20px;box-shadow:var(--shadow);padding:6px 16px}
+.day{display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--line)}
+.day:first-child{border-top:0}
+.day-l{width:46px;flex:none;text-align:center}
+.day-l .dw{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.day-l .dn{font:400 28px/1 var(--f-display)}
+.day.today .dn,.day.today .dw{color:var(--accent)}
+.evs{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;padding-top:2px}
+.ev{display:flex;gap:8px;align-items:baseline;font-size:14px}
+.ev .dot{width:8px;height:8px;border-radius:50%;background:var(--tint);flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);transform:translateY(-1px)}
+.ev .tm{color:var(--muted);font-variant-numeric:tabular-nums;flex:none;min-width:58px;font-size:13px}
+.ev .nm{overflow-wrap:anywhere;min-width:0}
+.ev a{color:inherit;text-decoration:none}
+.ev.coach .nm{font-weight:600}
+.free{font-size:13px;color:var(--muted);padding-top:6px}
+.acct{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:14px}
+.acct:first-child{border-top:0}
+.acct .amt{font-variant-numeric:tabular-nums;font-weight:600;flex:none}
+.notice{font-size:13px;color:var(--muted);padding:12px 0;line-height:1.5}
+.notice b{color:var(--ink);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin:10px 4px 0;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:8px;height:8px;border-radius:50%;background:var(--tint);display:inline-block}
+.stamp{font-size:12px;color:var(--muted);margin:8px 4px 0}
+
+.foot-link{display:block;margin:18px auto 0;color:var(--muted);font-size:13px;padding:8px}
+.foot-link:hover{color:var(--accent)}
+.sheet .sub{line-height:1.5}
+
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app"></div>
+
+<div class="dock">
+  <div class="dock-in">
+    <form class="capture" id="capture" autocomplete="off">
+      <input id="cap-input" type="text" placeholder="Add a to-do or brain dump…" aria-label="Add a to-do or brain dump, Daily will sort it">
+      <button type="submit" class="mic" id="cap-send" aria-label="Add it">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </form>
+    <nav class="tabs" aria-label="Sections">
+      <button class="tab" data-tab="home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>To-Do
+      </button>
+      <button class="tab" data-tab="boards">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="3" width="8" height="10" rx="2"/><rect x="13" y="3" width="8" height="6" rx="2"/><rect x="3" y="15" width="8" height="6" rx="2"/><rect x="13" y="11" width="8" height="10" rx="2"/></svg>Boards
+      </button>
+      <button class="tab" data-tab="dash">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Dashboard
+      </button>
+    </nav>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="sheet-in" id="sheet-in"></div></div>
+
+<script>
+(() => {
+const TINTS = ["rose","sage","sky","butter","lilac","clay"];
+const DEFAULT_LISTS = [
+  {id:"todo",  name:"To-Do",       tint:"rose",   hint:"Everyday personal tasks, errands, returns, appointments and reminders. The default.", order:0},
+  {id:"work",  name:"Work",        tint:"sky",    hint:"Work tasks and to-dos for the person's job.", order:1},
+  {id:"ideas", name:"Work Ideas",  tint:"butter", hint:"Business, marketing and content ideas to explore later, not yet tasks.", order:2},
+  {id:"dump",  name:"Brain Dump",  tint:"lilac",  hint:"Loose thoughts, notes and feelings that are not actionable yet.", order:3},
+];
+const S = {lists:[], items:[], pod:[], view:"home", board:null, ready:false, showDone:{}, fresh:new Set()};
+let store = null, mode = null;
+const $ = s => document.querySelector(s);
+const app = $("#app");
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+/* ---------- dates ---------- */
+const pad = n => String(n).padStart(2,"0");
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayISO = () => iso(new Date());
+function dueLabel(due){
+  if(!due) return null;
+  const t = new Date(todayISO()+"T00:00"), d = new Date(due+"T00:00");
+  const diff = Math.round((d - t)/864e5);
+  if(diff < 0) return {t: diff === -1 ? "Yesterday" : d.toLocaleDateString(undefined,{month:"short",day:"numeric"}), late:true};
+  if(diff === 0) return {t:"Today"};
+  if(diff === 1) return {t:"Tomorrow"};
+  if(diff < 7) return {t:d.toLocaleDateString(undefined,{weekday:"short"})};
+  return {t:d.toLocaleDateString(undefined,{month:"short",day:"numeric"})};
+}
+
+/* ---------- storage ----------
+   Everything goes through `store` (set / update / del) and comes back through applyDocs().
+   Today it saves on this device. To add syncing later, swap useLocal() for a cloud store
+   with the same three methods; the rest of the app doesn't change. */
+function applyDocs(docs){
+  S.lists = docs.filter(d=>d.kind==="list").sort((a,b)=>(a.order??99)-(b.order??99) || (a.created||0)-(b.created||0));
+  S.items = docs.filter(d=>d.kind==="item");
+  S.pod = docs.filter(d=>d.kind==="pod");
+  S.ready = true;
+  render();
+}
+function useLocal(){
+  if(mode) return; mode = "local";
+  const KEY = "daybook-v1";
+  let data = {};
+  try{ data = JSON.parse(localStorage.getItem(KEY)||"{}") }catch(e){}
+  const flush = () => { try{ localStorage.setItem(KEY, JSON.stringify(data)) }catch(e){}; applyDocs(Object.entries(data).map(([id,v])=>({...v,id}))) };
+  store = {
+    set:(id,v)=>{ data[id]=v; flush(); return Promise.resolve() },
+    update:(id,v)=>{ data[id]={...data[id],...v}; flush(); return Promise.resolve() },
+    del:(id)=>{ delete data[id]; flush(); return Promise.resolve() },
+  };
+  if(!Object.values(data).some(d=>d.kind==="list")) seedLists(); else flush();
+}
+function init(){
+  render();
+  useLocal();
+  // ask the phone to keep this app's data even when storage runs low
+  try{ navigator.storage?.persist?.() }catch(e){}
+  if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+function allDocs(){ try{ return JSON.parse(localStorage.getItem("daybook-v1")||"{}") }catch(e){ return {} } }
+function restoreDocs(data){
+  try{ localStorage.setItem("daybook-v1", JSON.stringify(data)) }catch(e){ toast("Couldn't save the backup on this phone."); return }
+  location.reload();
+}
+function seedLists(){
+  // fixed ids, so running this twice just rewrites the same four boards
+  DEFAULT_LISTS.forEach(l => store.set("list_"+l.id, {kind:"list", name:l.name, tint:l.tint, hint:l.hint, order:l.order, created:Date.now()}));
+}
+const listById = id => S.lists.find(l => l.id === "list_"+id || l.id === id);
+const lid = l => l.id.replace(/^list_/,"");
+
+/* ---------- writes ---------- */
+function addItem(text, list, due, star){
+  const id = "item_" + uid();
+  S.fresh.add(id);
+  const now = Date.now();
+  store.set(id, {kind:"item", text, list, due:due||null, star:!!star, done:false, created:now, rank:-now});
+  return id;
+}
+function toggle(id){
+  const it = S.items.find(i=>i.id===id); if(!it) return;
+  store.update(id, {done:!it.done, doneAt: it.done ? null : Date.now()});
+}
+function createList(name, tint){
+  const key = name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,30) || "board";
+  let id = key, n = 2; while(listById(id)) id = key + "-" + n++;
+  const order = Math.max(0, ...S.lists.map(l=>l.order||0)) + 1;
+  store.set("list_"+id, {kind:"list", name, tint: tint || TINTS[S.lists.length % TINTS.length], hint:"", order, created:Date.now()});
+  return id;
+}
+
+/* ---------- sorting ----------
+   Keyword rules that run on the phone. buildPrompt() is kept for later: with a small server
+   and an Anthropic API key, capture() can send it to Claude and use the reply instead. */
+const DAYS = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+function findDue(text){
+  const t = text.toLowerCase(), d = new Date(); d.setHours(0,0,0,0);
+  if(/\b(today|tonight|this (morning|afternoon|evening))\b/.test(t)) return iso(d);
+  if(/\btomorrow\b/.test(t)){ d.setDate(d.getDate()+1); return iso(d) }
+  // full day names only ("sat" or "wed" are too often ordinary words); the coming one, or a week out for "next <today>"
+  const m = t.match(/\b(next\s+)?(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/);
+  if(m){
+    let add = (DAYS.indexOf(m[2]) - d.getDay() + 7) % 7;
+    if(add === 0 && m[1]) add = 7;
+    d.setDate(d.getDate() + add); return iso(d);
+  }
+  return null;
+}
+const isUrgent = text => /\b(urgent|asap|a\.s\.a\.p|don'?t forget|must|important|priority)\b|!\s*$/i.test(text);
+
+function buildPrompt(note){
+  const d = new Date();
+  const boards = S.lists.map(l => `- id "${lid(l)}": "${l.name}"${l.hint ? " — " + l.hint : ""}`).join("\n");
+  return `You sort a person's quick spoken or typed notes into their personal boards in a to-do app.
+Today is ${d.toLocaleDateString("en-US",{weekday:"long"})}, ${iso(d)}.
+
+Their boards:
+${boards}
+${S.view === "board" && listById(S.board) ? `\nThey are looking at the "${listById(S.board).name}" board right now (id "${S.board}"), so use it unless the note clearly belongs on another board.\n` : ""}
+The note:
+"""${note}"""
+
+Rules:
+- If the note holds several separate tasks or thoughts, split them into separate items.
+- Rewrite each item as a short, clear entry in the person's own words, starting with a verb when it is a task. Drop filler like "I have to remember to", "I need to add to my work list to", "remind me to". Keep names and brands, capitalized properly (e.g. "Return hair product to Ulta").
+- Pick the board id that fits best. When the person names a board ("my work list", "brain dump"), use that board. If they name a board that does not exist, use "new:<Board Name>".
+- Everyday personal tasks and errands go to "todo". Non-actionable thoughts go to the brain dump board if there is one.
+- If a day or date is mentioned ("tomorrow", "Friday", "the 3rd"), set "due" to that date as YYYY-MM-DD, otherwise null.
+- Set "important" to true for timely, high-stakes items: a hard deadline within about a week (mail something by a date, pay a bill, sign a form), something that must happen today ("reply to that email today"), or words like urgent, ASAP, don't forget, must. Otherwise false.
+
+Reply with JSON only, in this shape:
+{"items":[{"text":"...","board":"todo","due":null,"important":false}]}`;
+}
+function heuristic(note){
+  let text = note.trim(), board = S.view === "board" && listById(S.board) ? S.board : "todo";
+  const byName = want => { want = want.toLowerCase().trim(); return S.lists.find(l => l.name.toLowerCase() === want) || S.lists.find(l => l.name.toLowerCase().includes(want) || want.includes(l.name.toLowerCase())) };
+  const m = text.match(/\b(?:to|on|in|onto|for)\s+(?:my|the)\s+([a-z][a-z\s-]{1,30}?)\s+(?:to-?do\s+)?(?:list|board)\b/i);
+  const pre = text.match(/^([^:]{2,30}):\s*(.+)$/);   // "Work: update listing photos"
+  if(m && byName(m[1])){ board = lid(byName(m[1])); text = text.replace(m[0], " ").replace(/\s{2,}/g," ").trim() }
+  else if(pre && byName(pre[1])){ board = lid(byName(pre[1])); text = pre[2].trim() }
+  else if(/brain\s*dump/i.test(text) && listById("dump")){ board = "dump"; text = text.replace(/^(add\s+)?(to\s+)?(my\s+)?brain\s*dump[:,]?\s*/i, "") }
+  else if(/^(idea|new idea|what if)\b/i.test(text) && listById("ideas")){ board = "ideas"; text = text.replace(/^(new\s+)?idea[:,-]?\s*(for\s+)?/i, "") }
+  else if(/\b(for|at)\s+work\b/i.test(text) && listById("work")){ board = "work"; text = text.replace(/\s*\b(for|at)\s+work\b/i, "") }
+  text = text.replace(/^(i\s+(have|need|got)\s+to\s+(remember\s+to\s+)?|remember\s+to\s+|remind\s+me\s+to\s+|i\s+need\s+(to\s+)?add\s+|add\s+)/i, "")
+             .replace(/^(to|that)\s+/i,"").trim();
+  text = text.charAt(0).toUpperCase() + text.slice(1);
+  return {items:[{text: text || note, board, due:findDue(note), important:isUrgent(note)}]};
+}
+
+let busy = false;
+async function capture(note){
+  note = note.trim(); if(!note || busy) return;
+  if(!S.ready){ toast("Still loading your boards, try again in a second."); return }
+  busy = true;
+  $("#cap-input").value = "";
+  const res = heuristic(note);
+  const created = [], made = [];
+  for(const it of res.items.slice(0,12)){
+    const text = String(it.text||"").trim(); if(!text) continue;
+    let board = String(it.board||"todo");
+    if(board.startsWith("new:")){
+      const name = board.slice(4).trim() || "New board";
+      const ex = S.lists.find(l=>l.name.toLowerCase()===name.toLowerCase());
+      board = ex ? lid(ex) : createList(name);
+      if(!ex) made.push(board);
+    } else if(!listById(board)) board = "todo";
+    const due = /^\d{4}-\d{2}-\d{2}$/.test(it.due||"") ? it.due : null;
+    created.push({id:addItem(text, board, due, it.important === true), text, board});
+  }
+  busy = false;
+  if(!created.length){ toast("Nothing to add from that one."); return }
+  const names = [...new Set(created.map(c => (listById(c.board)?.name) || "a new board"))];
+  const title = created.length === 1 ? created[0].text : `${created.length} items`;
+  toast(`<span class="msg">${esc(title)}<small>Added to ${esc(names.join(", "))}</small></span>`, {
+    html:true,
+    action:{label:"Undo", run:()=>{ created.forEach(c=>store.del(c.id)); made.forEach(id=>store.del("list_"+id)); toast("Removed.") }},
+    action2: created.length === 1 ? {label:"Edit", run:()=>openItem(created[0].id)} : null
+  });
+}
+
+/* ---------- capture bar ----------
+   To talk instead of typing, tap the mic on the phone's keyboard. */
+const capInput = $("#cap-input");
+$("#capture").addEventListener("submit", e => { e.preventDefault(); capture(capInput.value) });
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg, o={}){
+  const el = $("#toast");
+  el.innerHTML = (o.spin ? '<span class="spin"></span>' : "") + (o.html ? msg : `<span class="msg">${esc(msg)}</span>`);
+  [o.action, o.action2].filter(Boolean).forEach(a => {
+    const b = document.createElement("button"); b.textContent = a.label;
+    b.onclick = () => { el.classList.remove("show"); a.run() }; el.appendChild(b);
+  });
+  el.classList.add("show");
+  clearTimeout(toastT);
+  if(!o.sticky) toastT = setTimeout(()=>el.classList.remove("show"), o.action ? 6000 : 3500);
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])) }
+
+/* ---------- rendering ---------- */
+const CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>';
+const STAR = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5l2.6 5.3 5.9.9-4.25 4.1 1 5.85L12 16.9l-5.25 2.75 1-5.85L3.5 9.7l5.9-.9z"/></svg>';
+function starredHTML(){
+  const st = sortItems(S.items.filter(i => i.star && !i.done));
+  if(!st.length) return `<div class="list"><div class="empty">Star an item on any list and it shows up here.</div></div>`;
+  return `<div class="list">${st.slice(0,6).map(i=>itemHTML(i, true, true)).join("")}</div>`;
+}
+const CLEAR_MARK = '<div class="clear-mark" aria-label="All clear" role="img"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="m8 12.2 2.8 2.8L16 9.5"/></svg></div>';
+function weekSquares(d){
+  const todayIdx = (d.getDay()+6)%7;
+  return `<span class="wk" aria-label="Week, Monday to Sunday">${["M","T","W","T","F","S","S"].map((l,i)=>`<span class="sq ${i===todayIdx?"on":""}" ${i===todayIdx?'aria-current="date"':""}>${l}</span>`).join("")}</span>`;
+}
+/* order: starred first, then your own drag order (rank). New items get rank -created, so they land at the top of their group. */
+const rankOf = i => typeof i.rank === "number" ? i.rank : -(i.created || 0);
+const sortItems = arr => arr.slice().sort((a,b) => (!!b.star - !!a.star) || (rankOf(a) - rankOf(b)));
+const HANDLE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+const STAR_OUTLINE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.25 4.1 1 5.85L12 16.9l-5.25 2.75 1-5.85L3.5 9.7l5.9-.9z"/></svg>';
+function itemHTML(it, showBoard, noDrag){
+  const due = dueLabel(it.due), l = listById(it.list);
+  const chips = [
+    due && !it.done ? `<span class="chip ${due.late?"late":""}">${esc(due.t)}</span>` : "",
+    showBoard && l ? `<span class="chip board" style="--tint:var(--t-${l.tint})">${esc(l.name)}</span>` : ""
+  ].join("");
+  return `<div class="item ${it.done?"done":""} ${S.fresh.has(it.id)?"fresh":""}" data-id="${it.id}">
+    ${it.star && !it.done
+      ? `<button class="check starred" data-act="toggle" aria-label="Mark done: ${esc(it.text)}">${STAR}</button>`
+      : `<button class="check" data-act="toggle" aria-label="${it.done?"Mark not done":"Mark done"}: ${esc(it.text)}">${CHECK}</button>`}
+    <button class="body" data-act="edit"><span class="txt">${esc(it.text)}</span>${chips?`<span class="meta">${chips}</span>`:""}</button>
+    ${it.done ? "" : `${it.star ? "" : `<button class="star" data-act="star" aria-label="Star as priority">${STAR_OUTLINE}</button>`}${noDrag ? "" : `<span class="handle" aria-hidden="true">${HANDLE}</span>`}`}
+  </div>`;
+}
+function listBlock(boardId, emptyMsg, skip){
+  const all = S.items.filter(i => i.list === boardId && !(skip && skip.has(i.id)));
+  const open = sortItems(all.filter(i=>!i.done));
+  const done = all.filter(i=>i.done).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
+  let h = open.length ? `<div class="list" data-sortable="${boardId}">${open.map(i=>itemHTML(i)).join("")}</div>`
+                      : emptyMsg == null ? CLEAR_MARK : `<div class="list"><div class="empty">${emptyMsg}</div></div>`;
+  if(done.length){
+    const shown = S.showDone[boardId];
+    h += `<div class="section-h"><h2>Done</h2><span>
+      <button class="link" data-act="toggleDone" data-board="${boardId}">${shown?"Hide":"Show"} ${done.length}</button>
+      ${shown?`<button class="link" data-act="clearDone" data-board="${boardId}">Clear</button>`:""}</span></div>`;
+    if(shown) h += `<div class="list">${done.map(i=>itemHTML(i)).join("")}</div>`;
+  }
+  return h;
+}
+function render(){
+  if(drag){ renderPending = true; return }
+  const tabFor = S.view === "board" ? "boards" : S.view;
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-current", tabFor === t.dataset.tab ? "page" : "false"));
+  const focusId = document.activeElement?.id, focusVal = document.activeElement?.value;
+  const d = new Date();
+  const dateLine = d.toLocaleDateString(undefined,{weekday:"long", month:"long", day:"numeric"});
+  if(!S.ready){
+    app.innerHTML = `<div class="head"><div class="head-l"><div class="eyebrow">${esc(dateLine)}</div><h1>To-Do</h1><div class="sub">Opening your boards…</div></div></div>`;
+    return;
+  }
+  if(S.view === "home"){
+    const hr = d.getHours(), hello = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+    app.innerHTML = `
+      <div class="head"><div class="head-l"><div class="dateline"><span class="eyebrow">${esc(dateLine)}</span>${weekSquares(d)}</div>
+        <h1>${hello}, <em>here's today</em></h1></div></div>
+      ${listBlock("todo", null)}`;
+  } else if(S.view === "boards"){
+    const pins = S.lists.map(l => {
+      const open = sortItems(S.items.filter(i=>i.list===lid(l) && !i.done));
+      return `<button class="pin" data-act="openBoard" data-board="${lid(l)}" style="--tint:var(--t-${l.tint})">
+        <h3>${esc(l.name)}</h3><div class="n">${open.length} OPEN</div>
+        ${open.length ? `<ul>${open.slice(0,5).map(i=>`<li><span>${esc(i.text)}</span></li>`).join("")}${open.length>5?`<li><span>+${open.length-5} more</span></li>`:""}</ul>` : ""}
+      </button>`;
+    }).join("");
+    app.innerHTML = `
+      <div class="head"><div class="head-l"><div class="eyebrow">${esc(dateLine)}</div><h1>Boards</h1>
+        <div class="sub">Everything you've filed away. Tap one to open it.</div></div></div>
+      <div class="pins">${pins}<button class="pin new" data-act="newBoard">+ New board</button></div>
+      <button class="foot-link" data-act="backup">Back up or restore</button>`;
+  } else if(S.view === "dash"){
+    app.innerHTML = dashHTML(dateLine);
+  } else if(S.view === "board"){
+    const l = listById(S.board);
+    if(!l){ S.view = "boards"; return render() }
+    const open = S.items.filter(i=>i.list===S.board && !i.done).length;
+    app.innerHTML = `
+      <button class="back" data-act="go" data-view="boards"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 6-6 6 6 6"/></svg>Boards</button>
+      <div class="head"><div class="head-l"><h1>${esc(l.name)}</h1><div class="sub">${open} open</div></div>
+        <button class="icon-btn" data-act="boardSettings" aria-label="Board settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div>
+      ${listBlock(S.board, null)}`;
+  }
+  S.fresh.clear();
+  if(focusId){ const el = document.getElementById(focusId); if(el){ if(focusVal && el.tagName==="INPUT" && !el.value) el.value = focusVal; el.focus() } }
+}
+
+/* ---------- dashboard ----------
+   Built from your own lists for now. Calendar, coaching and money can be added here later
+   once the app has a small server to fetch them. */
+const money = n => (n < 0 ? "−" : "") + "$" + Math.abs(n).toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2});
+const weekKey = (d = new Date()) => { const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - ((x.getDay()+6)%7)); return iso(x) };
+function dashHTML(dateLine){
+  const wk = weekKey(), start = new Date(wk+"T00:00"), end = new Date(start.getTime() + 6*864e5);
+  const range = `${start.toLocaleDateString(undefined,{month:"short",day:"numeric"})} – ${end.toLocaleDateString(undefined,{month:"short",day:"numeric"})}`;
+  const pod = S.pod.find(p => p.id === "pod_"+wk);
+  const lastPod = S.pod.find(p => p.id === "pod_"+weekKey(new Date(start.getTime()-3*864e5)));
+  const open = S.items.filter(i => !i.done);
+  const starredOpen = open.filter(i => i.star).length;
+  const doneWeek = S.items.filter(i => i.done && (i.doneAt||0) >= start.getTime()).length;
+  const horizon = iso(new Date(Date.now() + 7*864e5)), today = todayISO();
+  const soon = open.filter(i => i.due && i.due <= horizon).sort((a,b) => a.due < b.due ? -1 : a.due > b.due ? 1 : rankOf(a) - rankOf(b));
+  const late = soon.filter(i => i.due < today).length;
+
+  const tiles = `<div class="tiles">
+    <button class="tile tap" data-act="pod"><span class="k">POD sales · this week</span><span class="v">${pod ? money(+pod.sales||0) : "–"}</span>
+      <span class="d">${pod ? `${+pod.orders||0} order${(+pod.orders||0)===1?"":"s"}${lastPod?` · last week ${money(+lastPod.sales||0)}`:""}` : "Tap to log this week's Etsy sales"}</span></button>
+    <div class="tile"><span class="k">Priorities</span><span class="v">${starredOpen}</span><span class="d">starred and open</span></div>
+    <div class="tile"><span class="k">Due soon</span><span class="v">${soon.length}</span><span class="d">${late ? `${late} overdue` : "in the next 7 days"}</span></div>
+    <div class="tile"><span class="k">Done this week</span><span class="v">${doneWeek}</span><span class="d">${open.length} still open</span></div>
+  </div>`;
+
+  return `<div class="head"><div class="head-l"><div class="eyebrow">${esc(dateLine)}</div><h1>Your <em>week</em></h1><div class="sub">${esc(range)}</div></div></div>
+    ${tiles}
+    <div class="section-h"><h2>Starred</h2><button class="link" data-act="go" data-view="home">Open to-do</button></div>
+    ${starredHTML()}
+    <div class="section-h"><h2>Due in the next 7 days</h2></div>
+    ${soon.length ? `<div class="list">${soon.slice(0,10).map(i=>itemHTML(i, true, true)).join("")}</div>`
+                  : `<div class="list"><div class="empty">Nothing due. Say a day like "tomorrow" or "Friday" when you add something and it shows up here.</div></div>`}`;
+}
+function openPodSheet(){
+  const k = weekKey(), p = S.pod.find(x => x.id === "pod_"+k);
+  openSheet(`<h2>POD sales this week</h2>
+    <div class="sub">Week of ${esc(new Date(k+"T00:00").toLocaleDateString(undefined,{month:"long",day:"numeric"}))}. Copy the numbers from Etsy's Stats page.</div>
+    <div class="row">
+      <div class="field" style="flex:1;min-width:130px"><label for="pod-sales">Sales ($)</label><input id="pod-sales" type="number" inputmode="decimal" min="0" step="0.01" value="${p?esc(p.sales):""}" placeholder="0.00"></div>
+      <div class="field" style="flex:1;min-width:130px"><label for="pod-orders">Orders</label><input id="pod-orders" type="number" inputmode="numeric" min="0" step="1" value="${p?esc(p.orders):""}" placeholder="0"></div>
+    </div>
+    <button class="btn" id="pod-save">Save</button>`);
+  $("#pod-save").onclick = () => {
+    store.set("pod_"+k, {kind:"pod", week:k, sales:+$("#pod-sales").value || 0, orders:Math.round(+$("#pod-orders").value || 0), updated:Date.now()});
+    closeSheet(); toast("Saved this week's sales.");
+  };
+}
+
+/* ---------- events ---------- */
+app.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if(!b) return;
+  const id = b.closest(".item")?.dataset.id, act = b.dataset.act;
+  if(act === "toggle") toggle(id);
+  else if(act === "star"){ const it = S.items.find(i=>i.id===id); if(it) store.update(id, {star:!it.star}) }
+  else if(act === "pod") openPodSheet();
+  else if(act === "backup") openBackupSheet();
+  else if(act === "edit") openItem(id);
+  else if(act === "openBoard"){ S.view = "board"; S.board = b.dataset.board; render(); scrollTo(0,0) }
+  else if(act === "go"){ S.view = b.dataset.view; render(); scrollTo(0,0) }
+  else if(act === "newBoard") openBoardSheet(null);
+  else if(act === "boardSettings") openBoardSheet(S.board);
+  else if(act === "toggleDone"){ S.showDone[b.dataset.board] = !S.showDone[b.dataset.board]; render() }
+  else if(act === "clearDone"){ S.items.filter(i=>i.list===b.dataset.board && i.done).forEach(i=>store.del(i.id)); toast("Cleared done items.") }
+});
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => { S.view = t.dataset.tab; render(); scrollTo(0,0) }));
+
+/* ---------- drag to reorder (the dragged row stays put in the DOM; its neighbours move around it) ---------- */
+let drag = null, renderPending = false;
+app.addEventListener("pointerdown", e => {
+  const h = e.target.closest(".handle"); if(!h) return;
+  const row = h.closest(".item"), list = row && row.closest("[data-sortable]"); if(!list) return;
+  e.preventDefault();
+  const ids = [...list.querySelectorAll(".item")].map(r=>r.dataset.id);
+  drag = {row, list, id:row.dataset.id, pid:e.pointerId, from:ids.indexOf(row.dataset.id)};
+  try{ h.setPointerCapture(e.pointerId) }catch(_){}
+  row.classList.add("dragging"); list.classList.add("is-sorting"); document.body.classList.add("drag-lock");
+});
+window.addEventListener("pointermove", e => {
+  if(!drag || e.pointerId !== drag.pid) return;
+  e.preventDefault();
+  const y = e.clientY, {row, list} = drag;
+  const prev = row.previousElementSibling, next = row.nextElementSibling;
+  if(prev){ const b = prev.getBoundingClientRect(); if(y < b.top + b.height/2){ list.insertBefore(prev, row.nextElementSibling); return } }
+  if(next){ const b = next.getBoundingClientRect(); if(y > b.top + b.height/2) list.insertBefore(next, row) }
+  if(y < 70) scrollBy(0, -10); else if(y > innerHeight - 170) scrollBy(0, 10);
+}, {passive:false});
+function endDrag(e){
+  if(!drag || (e && e.pointerId !== drag.pid)) return;
+  const {row, list, id, from} = drag; drag = null;
+  row.classList.remove("dragging"); list.classList.remove("is-sorting"); document.body.classList.remove("drag-lock");
+  const ids = [...list.querySelectorAll(".item")].map(r=>r.dataset.id), k = ids.indexOf(id);
+  const get = x => S.items.find(i=>i.id===x);
+  const me = get(id), above = get(ids[k-1]), below = get(ids[k+1]);
+  if(!me || k === from){ if(renderPending){ renderPending = false; render() } return }
+  let star = !!me.star;
+  if(above && below){ if(!!above.star === !!below.star) star = !!above.star }
+  else if(below){ if(below.star) star = true }
+  else if(above){ if(!above.star) star = false }
+  const ra = above && !!above.star === star ? rankOf(above) : null;
+  const rb = below && !!below.star === star ? rankOf(below) : null;
+  const rank = ra != null && rb != null ? (ra + rb)/2 : ra != null ? ra + 1000 : rb != null ? rb - 1000 : rankOf(me);
+  const starChanged = star !== !!me.star;
+  me.rank = rank; me.star = star;
+  store.update(id, {rank, star});
+  renderPending = false; render();
+  if(starChanged) toast(star ? "Starred and moved up." : "Unstarred.");
+}
+window.addEventListener("pointerup", endDrag);
+window.addEventListener("pointercancel", endDrag);
+
+/* ---------- sheets ---------- */
+const sheet = $("#sheet"), sheetIn = $("#sheet-in"), scrim = $("#scrim");
+function openSheet(html){ sheetIn.innerHTML = `<div class="grab"></div>` + html; sheet.classList.add("show"); scrim.classList.add("show") }
+function closeSheet(){ sheet.classList.remove("show"); scrim.classList.remove("show") }
+scrim.addEventListener("click", closeSheet);
+document.addEventListener("keydown", e => { if(e.key === "Escape") closeSheet() });
+function armDelete(btn, run, armedText = "Tap again to delete"){
+  if(btn.classList.contains("armed")){ run(); return }
+  btn.classList.add("armed"); btn.textContent = armedText;
+  setTimeout(()=>{ btn.classList.remove("armed"); btn.textContent = btn.dataset.label }, 3000);
+}
+function openItem(id){
+  const it = S.items.find(i=>i.id===id); if(!it) return;
+  openSheet(`<h2>Edit item</h2>
+    <div class="field"><label for="ed-text">Item</label><input id="ed-text" value="${esc(it.text)}"></div>
+    <div class="row">
+      <div class="field" style="flex:1;min-width:140px"><label for="ed-list">Board</label><select id="ed-list">${S.lists.map(l=>`<option value="${lid(l)}" ${lid(l)===it.list?"selected":""}>${esc(l.name)}</option>`).join("")}</select></div>
+      <div class="field" style="flex:1;min-width:140px"><label for="ed-due">Due</label><input id="ed-due" type="date" value="${it.due||""}"></div>
+    </div>
+    <div class="toggle-row"><span>Priority (moves it to the top)</span><button class="switch" id="ed-star" role="switch" aria-checked="${!!it.star}" aria-label="Priority"></button></div>
+    <div class="row"><button class="btn danger" id="ed-del" data-label="Delete">Delete</button><button class="btn" id="ed-save">Save</button></div>`);
+  $("#ed-star").onclick = e => { const b = e.currentTarget; b.setAttribute("aria-checked", b.getAttribute("aria-checked") !== "true") };
+  $("#ed-save").onclick = () => {
+    const text = $("#ed-text").value.trim(); if(!text) return;
+    store.update(id, {text, list:$("#ed-list").value, due:$("#ed-due").value || null, star:$("#ed-star").getAttribute("aria-checked")==="true"});
+    closeSheet();
+  };
+  $("#ed-del").onclick = e => armDelete(e.currentTarget, () => { store.del(id); closeSheet(); toast("Deleted.") });
+}
+function openBackupSheet(){
+  openSheet(`<h2>Back up or restore</h2>
+    <div class="sub">Your lists live on this phone. Save a backup to Files or iCloud Drive now and then, so nothing is lost if you switch phones or clear Safari's data.</div>
+    <button class="btn" id="bk-save">Save a backup</button>
+    <div class="field"><label for="bk-file">Restore from a backup</label><input id="bk-file" type="file" accept=".json,application/json"></div>
+    <button class="btn danger" id="bk-restore" data-label="Replace everything with this backup" hidden>Replace everything with this backup</button>`);
+  $("#bk-save").onclick = async () => {
+    const name = `daily-backup-${todayISO()}.json`;
+    const blob = new Blob([JSON.stringify({app:"daily", saved:new Date().toISOString(), data:allDocs()}, null, 1)], {type:"application/json"});
+    const file = new File([blob], name, {type:"application/json"});
+    try{
+      if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:name}); return }
+    }catch(e){ if(e && e.name === "AbortError") return }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  };
+  let pending = null;
+  $("#bk-file").onchange = e => {
+    const f = e.target.files && e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try{
+        const j = JSON.parse(r.result), data = j && j.data ? j.data : j;
+        const vals = data && typeof data === "object" ? Object.values(data) : [];
+        if(!vals.length || !vals.every(v => v && v.kind)) throw 0;
+        pending = data;
+        const n = vals.filter(v => v.kind === "item").length;
+        const b = $("#bk-restore"); b.hidden = false;
+        toast(`Backup has ${n} item${n===1?"":"s"}. Tap the red button to use it.`);
+      }catch(_){ pending = null; $("#bk-restore").hidden = true; toast("That file isn't a Daily backup.") }
+    };
+    r.readAsText(f);
+  };
+  $("#bk-restore").onclick = e => armDelete(e.currentTarget, () => { if(pending) restoreDocs(pending) }, "Tap again to replace");
+}
+function openBoardSheet(boardId){
+  const l = boardId ? listById(boardId) : null;
+  let tint = l ? l.tint : TINTS[S.lists.length % TINTS.length];
+  openSheet(`<h2>${l ? "Board settings" : "New board"}</h2>
+    <div class="field"><label for="bd-name">Name</label><input id="bd-name" value="${l?esc(l.name):""}" placeholder="e.g. Groceries, Gift ideas, Listings"></div>
+    <div class="field"><label for="bd-hint">What goes here? <span style="text-transform:none;letter-spacing:0">(helps voice sorting)</span></label><input id="bd-hint" value="${l?esc(l.hint||""):""}" placeholder="e.g. Things to buy at Target or the grocery store"></div>
+    <div class="field"><label>Color</label><div class="swatches">${TINTS.map(t=>`<button class="sw" data-t="${t}" style="--tint:var(--t-${t})" aria-label="${t}" aria-pressed="${t===tint}"></button>`).join("")}</div></div>
+    <div class="row">${l && boardId!=="todo" ? `<button class="btn danger" id="bd-del" data-label="Delete board">Delete board</button>` : ""}<button class="btn" id="bd-save">${l?"Save":"Create board"}</button></div>
+    ${boardId==="todo" ? `<div class="note">To-Do is your home list, so it can't be deleted.</div>` : ""}`);
+  sheetIn.querySelectorAll(".sw").forEach(s => s.onclick = () => { tint = s.dataset.t; sheetIn.querySelectorAll(".sw").forEach(x=>x.setAttribute("aria-pressed", x===s)) });
+  $("#bd-save").onclick = () => {
+    const name = $("#bd-name").value.trim(), hint = $("#bd-hint").value.trim(); if(!name) return;
+    if(l) store.update(l.id, {name, tint, hint});
+    else { const id = createList(name, tint); if(hint) store.update("list_"+id, {hint}); S.view = "board"; S.board = id }
+    closeSheet();
+  };
+  const del = $("#bd-del");
+  if(del) del.onclick = e => armDelete(e.currentTarget, () => {
+    S.items.filter(i=>i.list===boardId).forEach(i=>store.del(i.id));
+    store.del(l.id); closeSheet(); S.view = "boards"; render(); toast(`Deleted ${l.name}.`);
+  });
+}
+
+init();
+})();
+</script>
+</body>
+</html>
