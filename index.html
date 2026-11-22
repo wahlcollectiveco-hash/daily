@@ -629,13 +629,13 @@ function render(){
     const pins = S.lists.map(l => {
       const open = sortItems(S.items.filter(i=>i.list===lid(l) && !i.done));
       return `<button class="pin" data-act="openBoard" data-board="${lid(l)}" style="--tint:var(--t-${l.tint})">
-        <h3>${esc(l.name)}</h3><div class="n">${open.length} OPEN</div>
+        <h3>${esc(l.name)}</h3>
         ${open.length ? `<ul>${open.slice(0,5).map(i=>`<li><span>${esc(i.text)}</span></li>`).join("")}</ul>` : ""}
       </button>`;
     }).join("");
     app.innerHTML = `
       <div class="head"><div class="head-l"><div class="eyebrow">${esc(dateLine)}</div><h1>Boards</h1>
-        <div class="sub">Everything you've filed away. Tap one to open it.</div></div></div>
+</div></div>
       <div class="pins">${pins}<button class="pin new" data-act="newBoard">+ New board</button></div>
       <button class="foot-link" data-act="backup">Back up or restore</button>`;
   } else if(S.view === "dash"){
@@ -646,7 +646,7 @@ function render(){
     const open = S.items.filter(i=>i.list===S.board && !i.done).length;
     app.innerHTML = `
       <button class="back" data-act="go" data-view="boards"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 6-6 6 6 6"/></svg>Boards</button>
-      <div class="head"><div class="head-l"><h1>${esc(l.name)}</h1><div class="sub">${open} open</div></div>
+      <div class="head"><div class="head-l"><h1>${esc(l.name)}</h1></div>
         <button class="icon-btn" data-act="boardSettings" aria-label="Board settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div>
       ${listBlock(S.board, null)}`;
   }
