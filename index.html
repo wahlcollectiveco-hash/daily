@@ -124,9 +124,9 @@ body.drag-lock{user-select:none;-webkit-user-select:none;overscroll-behavior:non
 .burst{position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:60}
 .burst i{position:absolute;left:-2px;top:-5px;width:4px;height:10px;border-radius:3px;background:var(--c)}
 .burst b{position:absolute;left:-15px;top:-15px;width:30px;height:30px;border-radius:50%;border:2px solid var(--accent)}
-.check.pop{animation:pop .36s cubic-bezier(.3,1.6,.5,1)}
+.check.pop{animation:pop .55s cubic-bezier(.3,1.6,.5,1)}
 @keyframes pop{0%{transform:scale(.8)}50%{transform:scale(1.22)}100%{transform:scale(1)}}
-.item.leaving .body,.item.leaving .star,.item.leaving .handle{opacity:0;filter:blur(3px);transform:translateX(6px);transition:opacity .38s ease,filter .38s ease,transform .38s ease}
+.item.leaving .body,.item.leaving .star,.item.leaving .handle{opacity:0;filter:blur(3px);transform:translateX(6px);transition:opacity .65s ease,filter .65s ease,transform .65s ease}
 .mic.on::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--accent);animation:pulse 1.4s ease-out infinite}
 @keyframes pulse{0%{transform:scale(.9);opacity:1}100%{transform:scale(1.25);opacity:0}}
 .send{color:var(--accent)}
@@ -353,7 +353,7 @@ function burstAt(el){
   wrap.style.transform = `translate(${r.left + r.width/2}px, ${r.top + r.height/2}px)`;
   const ring = document.createElement("b");
   wrap.appendChild(ring);
-  ring.animate([{transform:"scale(.5)", opacity:.8}, {transform:"scale(1.7)", opacity:0}], {duration:460, easing:"cubic-bezier(.2,.7,.3,1)", fill:"forwards"});
+  ring.animate([{transform:"scale(.5)", opacity:.8}, {transform:"scale(1.7)", opacity:0}], {duration:760, easing:"cubic-bezier(.2,.7,.3,1)", fill:"forwards"});
   const colors = ["var(--accent)", "var(--burst-2)", "var(--burst-3)"];
   const n = 10;
   for(let k = 0; k < n; k++){
@@ -365,10 +365,10 @@ function burstAt(el){
       {transform:`rotate(${deg}deg) translateY(-8px) scaleY(.5)`, opacity:1},
       {transform:`rotate(${deg}deg) translateY(${-d}px) scaleY(1)`, opacity:1, offset:.5},
       {transform:`rotate(${deg}deg) translateY(${-d - 8}px) scaleY(.2)`, opacity:0}
-    ], {duration:580, easing:"cubic-bezier(.2,.7,.3,1)", fill:"forwards"});
+    ], {duration:950, easing:"cubic-bezier(.2,.7,.3,1)", fill:"forwards"});
   }
   document.body.appendChild(wrap);
-  setTimeout(() => wrap.remove(), 700);
+  setTimeout(() => wrap.remove(), 1100);
 }
 function completeWithBurst(btn, id){
   const it = S.items.find(i=>i.id===id), row = btn.closest(".item");
@@ -380,9 +380,9 @@ function completeWithBurst(btn, id){
   burstAt(btn);
   setTimeout(() => {
     row.style.overflow = "hidden";
-    const fold = row.animate([{height:row.offsetHeight + "px", opacity:1}, {height:"0px", paddingTop:"0px", paddingBottom:"0px", opacity:0}], {duration:240, easing:"ease-in", fill:"forwards"});
+    const fold = row.animate([{height:row.offsetHeight + "px", opacity:1}, {height:"0px", paddingTop:"0px", paddingBottom:"0px", opacity:0}], {duration:360, easing:"ease-in", fill:"forwards"});
     fold.onfinish = () => toggle(id);
-  }, 420);
+  }, 720);
 }
 function createList(name, tint){
   const key = name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,30) || "board";
